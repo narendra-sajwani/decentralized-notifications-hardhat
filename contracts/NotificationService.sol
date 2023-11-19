@@ -63,9 +63,9 @@ contract NotificationService {
         string channelDescription
     );
     event DelegateAdded(address indexed channelAddress, address indexed delegate);
-    event DelegateRemoved(address indexed channelAddress, address indexed delegate);
+    // event DelegateRemoved(address indexed channelAddress, address indexed delegate);
     event ChannelMuted(address indexed channelAddress);
-    event ChannelUnmuted(address indexed channelAddress);
+    // event ChannelUnmuted(address indexed channelAddress);
     event ChannelDeleted(address indexed channelAddress);
     event NotificationGenerated(
         address indexed channelAddress,
@@ -176,7 +176,10 @@ contract NotificationService {
         emit ChannelCreated(_channelAddress, msg.sender, _channelName, _channelDescription);
     }
 
-    function addDelegate(address _channelAddress, address delegate)
+    function addDelegate(
+        address _channelAddress,
+        address delegate
+    )
         external
         nonZeroAddress(delegate)
         nonZeroAddress(_channelAddress)
@@ -190,7 +193,10 @@ contract NotificationService {
         emit DelegateAdded(_channelAddress, delegate);
     }
 
-    function removeDelegate(address _channelAddress, address delegate)
+    function removeDelegate(
+        address _channelAddress,
+        address delegate
+    )
         external
         nonZeroAddress(delegate)
         nonZeroAddress(_channelAddress)
@@ -205,10 +211,12 @@ contract NotificationService {
         );
         channelAddressToChannel[_channelAddress].delegates = newDelegates;
         delete channelAddressToDelegate[_channelAddress][delegate];
-        emit DelegateRemoved(_channelAddress, delegate);
+        // emit DelegateRemoved(_channelAddress, delegate);
     }
 
-    function muteChannel(address _channelAddress)
+    function muteChannel(
+        address _channelAddress
+    )
         external
         channelExists(_channelAddress)
         onlyAdmin(_channelAddress, msg.sender)
@@ -218,21 +226,21 @@ contract NotificationService {
         emit ChannelMuted(_channelAddress);
     }
 
-    function unmuteChannel(address _channelAddress)
+    function unmuteChannel(
+        address _channelAddress
+    )
         external
         channelExists(_channelAddress)
         onlyAdmin(_channelAddress, msg.sender)
         isMuted(_channelAddress)
     {
         channelAddressToChannel[_channelAddress].channelState = ChannelState.ACTIVE;
-        emit ChannelUnmuted(_channelAddress);
+        // emit ChannelUnmuted(_channelAddress);
     }
 
-    function deleteChannel(address _channelAddress)
-        external
-        channelExists(_channelAddress)
-        onlyAdmin(_channelAddress, msg.sender)
-    {
+    function deleteChannel(
+        address _channelAddress
+    ) external channelExists(_channelAddress) onlyAdmin(_channelAddress, msg.sender) {
         // update channelAddressToDelegate mapping
         for (uint256 i = 0; i < channelAddressToChannel[_channelAddress].delegates.length; i++) {
             delete channelAddressToDelegate[_channelAddress][
@@ -266,11 +274,10 @@ contract NotificationService {
         emit NotificationGenerated(_channelAddress, _recipient, notification);
     }
 
-    function broadcastNotification(address _channelAddress, string memory _message)
-        public
-        channelExists(_channelAddress)
-        onlyAdminOrDelegate(_channelAddress, msg.sender)
-    {
+    function broadcastNotification(
+        address _channelAddress,
+        string memory _message
+    ) public channelExists(_channelAddress) onlyAdminOrDelegate(_channelAddress, msg.sender) {
         for (uint256 i = 0; i < channelAddressToChannel[_channelAddress].subsribers.length; i++) {
             sendNotification(
                 _channelAddress,
@@ -283,11 +290,9 @@ contract NotificationService {
     //////////////////////////////
     ////// User Functions ////////
     /////////////////////////////
-    function subscribe(address _channelAddress)
-        external
-        channelExists(_channelAddress)
-        notAlreadySubscribed(_channelAddress, msg.sender)
-    {
+    function subscribe(
+        address _channelAddress
+    ) external channelExists(_channelAddress) notAlreadySubscribed(_channelAddress, msg.sender) {
         uint256 subscriberIndex = channelAddressToChannel[_channelAddress].subsribers.length;
         channelAddressToChannel[_channelAddress].subsribers.push(msg.sender);
         Subscription memory newSubscription = Subscription(
@@ -299,11 +304,9 @@ contract NotificationService {
         emit UserSubscribed(_channelAddress, msg.sender);
     }
 
-    function unsubscribe(address _channelAddress)
-        external
-        channelExists(_channelAddress)
-        isSubscribed(msg.sender, _channelAddress)
-    {
+    function unsubscribe(
+        address _channelAddress
+    ) external channelExists(_channelAddress) isSubscribed(msg.sender, _channelAddress) {
         uint256 _subscriberIndex = channelAddressToUserSubscription[_channelAddress][msg.sender]
             .subscriberIndex;
         address[] memory newSubscribers = removeElementFromArray(
@@ -317,11 +320,10 @@ contract NotificationService {
 
     // view or pure functions
 
-    function removeElementFromArray(address[] memory arr, uint256 index)
-        private
-        pure
-        returns (address[] memory)
-    {
+    function removeElementFromArray(
+        address[] memory arr,
+        uint256 index
+    ) private pure returns (address[] memory) {
         address[] memory result = new address[](arr.length - 1);
         uint256 i = 0;
         uint256 j = 0;
